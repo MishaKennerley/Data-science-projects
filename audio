@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Nov  1 11:31:53 2022
+
+@author: mishakennerley
+"""
+import librosa
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy
+from librosa import display
+import librosa.filters
+
+filename='Spray.wav'
+y,sr=librosa.load(filename)
+length=1/sr*len(y)
+def time(signal,length):
+    time=np.linspace(0,length,len(signal))
+    return time
+def melspectrogram(signal):
+    filter_banks=librosa.filters.mel(n_fft=2048,sr=sr,n_mels=10)
+    mel_spectrogram=librosa.feature.melspectrogram(signal,sr=sr,n_fft=2048,hop_length=80,n_mels=90)
+    log_mel_spectrogram=librosa.power_to_db(mel_spectrogram)
+    log_mel_spectrogram1 = np.flip(log_mel_spectrogram,0)   
+    return log_mel_spectrogram1
+log_mel_spectrogram=melspectrogram(y)           
+plt.imshow(log_mel_spectrogram,extent=[0,length,0,sr/2],aspect='auto')
+plt.xlabel('time (s)')
+
+plt.ylabel('frequency (mel)' )
+plt.show()
+#%%
+import scipy
+from scipy import fftpack
+def mfcc(logmel):
+    cepstrum=np.zeros(shape=(len(logmel[:,0]),len(logmel[0,:])))
+
+    for i in range(0,len(logmel[0,:])):
+        cepstrum[:,i]=scipy.fftpack.dct(logmel[:,i])
+
+    cepstrum=np.flip(cepstrum,0)
+    newcepstrum=cepstrum[0:13,:]
+    return newcepstrum
+newcepstrum1=mfcc(log_mel_spectrogram)
+plt.imshow(newcepstrum1,extent=[0,length,0,13],aspect='auto')
+plt.xlabel('time (s)')
+
+plt.ylabel('index' )
+
+#%%
+def dmfccs(cepstrum):
+    deltacepstrum=np.zeros(shape=(12,len(cepstrum[0,:])))
+    for i in range(0,len(cepstrum[0,:])):
+        for j in range (1,13):
+            deltacepstrum[j-1,i]=abs(cepstrum[j,i]-cepstrum[j-1,i])
+    return deltacepstrum
+deltacepstrum1=dmfccs(newcepstrum1)
+plt.imshow(deltacepstrum1,extent=[0,length,0,13],aspect='auto')
+plt.xlabel('time (s)')
+
+plt.ylabel('index' )
+#%%
+def ddmfccs(dmfccs):
+    deltadeltacepstrum=np.zeros(shape=(11,len(dmfccs[0,:])))
+    for i in range(0,len(dmfccs[0,:])):
+        for j in range (1,12):
+            deltadeltacepstrum[j-1,i]=abs(dmfccs[j,i]-dmfccs[j-1,i])
+    return deltadeltacepstrum
+deltadeltacepstrum1=ddmfccs(deltacepstrum1)
+plt.imshow(deltadeltacepstrum1,extent=[0,length,0,12],aspect='auto')
+plt.xlabel('time (s)')
+
+plt.ylabel('index' )
+#%%
+def reshape(array):
+    a=array[0:11,0:250]
+    return a
+#%%
+
+y1,sr1=librosa.load('Air.wav')
+y2,sr2=librosa.load('Air2.wav')
+y3,sr3=librosa.load('Zoeair.wav')
+y4,sr4=librosa.load('Zoeair2.wav')
+y5,sr5=librosa.load('Joshair.wav')
+y6,sr6=librosa.load('Joshair2.wav')
+y7,sr7=librosa.load('Jamesair.wav')
+y8,sr8=librosa.load('Jamesair2.wav')
+
+
+length1=1/sr1*len(y1)
+length2=1/sr2*len(y2)
+length3=1/sr3*len(y3)
+length4 =1/sr4*len(y4)
+
+melspec1=melspectrogram(y1)
+melspec2=melspectrogram(y2)
+melspec3=melspectrogram(y3)
+melspec4=melspectrogram(y4)
+melspec5=melspectrogram(y5)
+melspec6=melspectrogram(y6)
+melspec7=melspectrogram(y7)
+melspec8=melspectrogram(y8)
+
+cepstrum1=mfcc(melspec1)
+cepstrum2=mfcc(melspec2)
+cepstrum3=mfcc(melspec3)
+cepstrum4=mfcc(melspec4)
+cepstrum5=mfcc(melspec5)
+cepstrum6=mfcc(melspec6)
+cepstrum7=mfcc(melspec7)
+cepstrum8=mfcc(melspec8)
+
+deltacepstrum1=dmfccs(cepstrum1)
+deltacepstrum2=dmfccs(cepstrum2)
+deltacepstrum3=dmfccs(cepstrum3)
+deltacepstrum4=dmfccs(cepstrum4)
+deltacepstrum5=dmfccs(cepstrum5)
+deltacepstrum6=dmfccs(cepstrum6)
+deltacepstrum7=dmfccs(cepstrum7)
+deltacepstrum8=dmfccs(cepstrum8)
+
+
+ddcepstrum1=ddmfccs(deltacepstrum1)
+ddcepstrum2=ddmfccs(deltacepstrum2)
+ddcepstrum3=ddmfccs(deltacepstrum3)
+ddcepstrum4=ddmfccs(deltacepstrum4)
+ddcepstrum5=ddmfccs(deltacepstrum5)
+ddcepstrum6=ddmfccs(deltacepstrum6)
+ddcepstrum7=ddmfccs(deltacepstrum7)
+ddcepstrum8=ddmfccs(deltacepstrum8)
+#%%
+cepstrum1=reshape(cepstrum1)
+cepstrum2=reshape(cepstrum2)
+cepstrum3=reshape(cepstrum3)
+cepstrum4=reshape(cepstrum4)
+cepstrum5=reshape(cepstrum5)
+cepstrum6=reshape(cepstrum6)
+cepstrum7=reshape(cepstrum7)
+cepstrum8=reshape(cepstrum8)
+
+deltacepstrum1=reshape(deltacepstrum1)
+deltacepstrum2=reshape(deltacepstrum2)
+deltacepstrum3=reshape(deltacepstrum3)
+deltacepstrum4=reshape(deltacepstrum4)
+deltacepstrum5=reshape(deltacepstrum5)
+deltacepstrum6=reshape(deltacepstrum6)
+deltacepstrum7=reshape(deltacepstrum7)
+deltacepstrum8=reshape(deltacepstrum8)
+
+ddcepstrum1=reshape(ddcepstrum1)
+ddcepstrum2=reshape(ddcepstrum2)
+ddcepstrum3=reshape(ddcepstrum3) 
+ddcepstrum4=reshape(ddcepstrum4)
+ddcepstrum5=reshape(ddcepstrum5)
+ddcepstrum6=reshape(ddcepstrum6)
+ddcepstrum7=reshape(ddcepstrum7)
+ddcepstrum8=reshape(ddcepstrum8)
+
+
+fig,((ax1,ax2),(ax3,ax4),(ax5,ax6),(ax7,ax8))=plt.subplots(4,2)
+
+ax1.imshow(cepstrum1,aspect='auto')
+ax2.imshow(cepstrum2,aspect='auto')
+ax3.imshow(cepstrum3,aspect='auto')
+ax4.imshow(cepstrum4,aspect='auto')
+ax5.imshow(cepstrum5,aspect='auto')
+ax6.imshow(cepstrum6,aspect='auto')
+ax7.imshow(cepstrum7,aspect='auto')
+ax8.imshow(cepstrum8,aspect='auto')
+
+fig1,((ax1,ax2),(ax3,ax4),(ax5,ax6),(ax7,ax8))=plt.subplots(4,2)
+
+ax1.imshow(deltacepstrum1,aspect='auto')
+ax2.imshow(deltacepstrum2,aspect='auto')
+ax3.imshow(deltacepstrum3,aspect='auto')
+ax4.imshow(deltacepstrum4,aspect='auto')
+ax5.imshow(deltacepstrum5,aspect='auto')
+ax6.imshow(deltacepstrum6,aspect='auto')
+ax7.imshow(deltacepstrum7,aspect='auto')
+ax8.imshow(deltacepstrum8,aspect='auto')
+
+fig2,((ax1,ax2),(ax3,ax4),(ax5,ax6),(ax7,ax8))=plt.subplots(4,2)
+
+ax1.imshow(ddcepstrum1,aspect='auto')
+ax2.imshow(ddcepstrum2,aspect='auto')
+ax3.imshow(ddcepstrum3,aspect='auto')
+ax4.imshow(ddcepstrum4,aspect='auto')
+ax5.imshow(ddcepstrum5,aspect='auto')
+ax6.imshow(ddcepstrum6,aspect='auto')
+ax7.imshow(ddcepstrum7,aspect='auto')
+ax8.imshow(ddcepstrum8,aspect='auto')
+#%%
+import skimage
+import sewar
+import skimage.measure
+from skimage.morphology import disk
+from skimage.filters.rank import entropy
+
+cd1=sewar.rmse(cepstrum1,deltacepstrum1)
+cd2=sewar.rmse(cepstrum2,deltacepstrum2)
+cd3=sewar.rmse(cepstrum3,deltacepstrum3)
+cd4=sewar.rmse(cepstrum4,deltacepstrum4)
+cd5=sewar.rmse(cepstrum5,deltacepstrum5)
+cd6=sewar.rmse(cepstrum6,deltacepstrum6)
+cd7=sewar.rmse(cepstrum7,deltacepstrum7)
+cd8=sewar.rmse(cepstrum8,deltacepstrum8)
+
+cdd1=sewar.rmse(deltacepstrum1,ddcepstrum1)
+cdd2=sewar.rmse(deltacepstrum2,ddcepstrum2)
+cdd3=sewar.rmse(deltacepstrum3,ddcepstrum3)
+cdd4=sewar.rmse(deltacepstrum4,ddcepstrum4)
+cdd5=sewar.rmse(deltacepstrum5,ddcepstrum5)
+cdd6=sewar.rmse(deltacepstrum6,ddcepstrum6)
+cdd7=sewar.rmse(deltacepstrum7,ddcepstrum7)
+cdd8=sewar.rmse(deltacepstrum8,ddcepstrum8)
+
+
+misha=np.array([[cd1,cdd1],
+               [cd2,cdd2]])
+
+zoe=np.array([[cd3,cdd3],
+               [cd4,cdd4]])
+
+josh=np.array([[cd5,cdd5],
+               [cd6,cdd6]])
+
+james=np.array([[cd7,cdd8],
+               [cd8,cdd8]])
+
+plt.scatter(misha[:,0],misha[:,1],label='misha')
+plt.scatter(zoe[:,0],zoe[:,1],label='zoe')
+plt.scatter(josh[:,0],josh[:,1],label='josh')
+plt.scatter(james[:,0],james[:,1],label='james')
+
+plt.legend()
+
+plt.xlabel('rms between mfccs and dmfccs')
+plt.ylabel('rms between $\Delta$ mfccs and $\Delta \Delta$ mfccs')
+#%%
+from scipy.signal import find_peaks
+def averagepitch(signal):
+    fouriertransform=np.abs(np.fft.fft(signal))
+    freq=np.linspace(0,sr,len(signal))
+    analyticalsignal=np.abs(scipy.signal.hilbert(fouriertransform))
+    indexhigh=int(sr/2)
+    
+    peaks,_=find_peaks(np.log10(analyticalsignal[0:indexhigh]),height=0,width=8,prominence=1)
+    averagepitch=freq[peaks[0]]
+    return averagepitch
+plt.plot((np.linspace(0,sr,len(y8))),np.abs(np.fft.fft(y8)))
+av=averagepitch(y1)
+
+
+
+
